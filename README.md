@@ -1,5 +1,10 @@
 # template-analysis
 
+[![Python](https://img.shields.io/pypi/pyversions/template-analysis.svg)](https://badge.fury.io/py/template-analysis)
+[![PyPI version](https://img.shields.io/pypi/v/template-analysis.svg)](https://pypi.python.org/pypi/template-analysis/)
+[![codecov](https://codecov.io/gh/kitsuyui/template-analysis/branch/main/graph/badge.svg?token=AMEP8YUYXA)](https://codecov.io/gh/kitsuyui/template-analysis)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 Generate template and extract variables from texts.
 In other words, template-analysis makes reverse template (untemplate).
 
