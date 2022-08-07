@@ -142,3 +142,6 @@ class Analyzer:
         )
 
         return AnalyzerResult(template_a, [vars_a, vars_b])
+
+
+analyze = Analyzer.analyze

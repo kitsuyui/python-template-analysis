@@ -13,10 +13,10 @@ In other words, template-analysis makes reverse template (untemplate).
 Currently, this supports to analyze only two texts.
 
 ```python
-from template_analysis import Analyzer
+from template_analysis import analyze
 text1 = 'A dog is a good pet'
 text2 = 'A cat is a good pet'
-result = Analyzer.analyze([text1, text2])
+result = analyze([text1, text2])
 result.to_format_string()  # => 'A {} is a good pet'
 result.args[0]  # => ['dog']
 result.args[1]  # => ['cat']
