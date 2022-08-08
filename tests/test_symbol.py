@@ -1,4 +1,4 @@
-from template_analysis.symbol import Symbol, to_symbol_chunks
+from template_analysis.symbol import Symbol, SymbolTable, to_symbol_chunks
 
 
 def test_to_symbol_chunks() -> None:
@@ -23,3 +23,12 @@ def test_to_symbol_chunks() -> None:
         symbol2,
         "cd",
     ]
+
+
+def test_symbol_table() -> None:
+    table = SymbolTable.create()
+    symbol1 = Symbol.create()
+    table.add(symbol1, "a")
+
+    assert table.lookup(symbol1) == "a"
+    assert table.lookup("b") == "b"
