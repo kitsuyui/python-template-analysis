@@ -84,29 +84,27 @@ class Analyzer:
         return [table.lookup(arg) for arg in self.to_uniques()]
 
     @classmethod
-    def analyze(cls, strings: list[str]) -> AnalyzerResult:
-        if len(strings) == 1:
+    def analyze(cls, texts: list[str]) -> AnalyzerResult:
+        if len(texts) == 1:
             return AnalyzerResult(
-                template=Template([PlainText(strings[0])]),
+                template=Template([PlainText(texts[0])]),
                 args=[[]],
             )
-        elif len(strings) == 2:
-            return cls.analyze_two_strings(strings[0], strings[1])
-        elif len(strings) == 3:
-            return cls.analyze_three_strings(
-                strings[0], strings[1], strings[2]
-            )
+        elif len(texts) == 2:
+            return cls.analyze_two_texts(texts[0], texts[1])
+        elif len(texts) == 3:
+            return cls.analyze_three_texts(texts[0], texts[1], texts[2])
 
         raise NotImplementedError(
-            "Analyze more than two strings are not implemented yet."
+            "Analyze more than three strings are not implemented yet."
         )
 
     @classmethod
-    def analyze_two_strings(cls, string1: str, string2: str) -> AnalyzerResult:
-        matcher = difflib.SequenceMatcher(None, string1, string2)
+    def analyze_two_texts(cls, text1: str, text2: str) -> AnalyzerResult:
+        matcher = difflib.SequenceMatcher(None, text1, text2)
         blocks = matcher.get_matching_blocks()
-        analyzer_a = cls.create(string1)
-        analyzer_b = cls.create(string2)
+        analyzer_a = cls.create(text1)
+        analyzer_b = cls.create(text2)
 
         for block in blocks:
             while (unmatch_length := block.a - analyzer_a.pos) > 0:
@@ -165,12 +163,12 @@ class Analyzer:
         return AnalyzerResult(template_a, [*args1, *args2])
 
     @classmethod
-    def analyze_three_strings(
-        cls, string1: str, string2: str, string3: str
+    def analyze_three_texts(
+        cls, text1: str, text2: str, text3: str
     ) -> AnalyzerResult:
-        result_1_and_2 = cls.analyze_two_strings(string1, string2)
-        result_2_and_3 = cls.analyze_two_strings(string2, string3)
-        result_3_and_1 = cls.analyze_two_strings(string3, string1)
+        result_1_and_2 = cls.analyze_two_texts(text1, text2)
+        result_2_and_3 = cls.analyze_two_texts(text2, text3)
+        result_3_and_1 = cls.analyze_two_texts(text3, text1)
         r1 = cls.analyze_two_result(result_1_and_2, result_2_and_3)
         r2 = cls.analyze_two_result(result_2_and_3, result_3_and_1)
         rx = cls.analyze_two_result(r1, r2)

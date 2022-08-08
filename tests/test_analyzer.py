@@ -3,39 +3,39 @@ import pytest
 from template_analysis import Analyzer, analyze
 
 
-def test_analyzer_analyze_two_strings() -> None:
-    string1 = "A dog is a good pet"
-    string2 = "A cat is a good pet"
-    result = Analyzer.analyze_two_strings(string1, string2)
+def test_analyzer_analyze_two_texts() -> None:
+    text1 = "A dog is a good pet"
+    text2 = "A cat is a good pet"
+    result = Analyzer.analyze_two_texts(text1, text2)
 
     assert result.to_format_string() == "A {} is a good pet"
     assert result.args[0] == ["dog"]
     assert result.args[1] == ["cat"]
 
 
-def test_analyzer_analyze_1_string() -> None:
-    string1 = "A dog is a good pet"
-    result = analyze([string1])
+def test_analyzer_analyze_1_text() -> None:
+    text1 = "A dog is a good pet"
+    result = analyze([text1])
 
     assert result.to_format_string() == "A dog is a good pet"
     assert result.args[0] == []
 
 
-def test_analyzer_analyze_2_strings() -> None:
-    string1 = "A dog is a good pet"
-    string2 = "A cat is a good pet"
-    result = analyze([string1, string2])
+def test_analyzer_analyze_2_texts() -> None:
+    text1 = "A dog is a good pet"
+    text2 = "A cat is a good pet"
+    result = analyze([text1, text2])
 
     assert result.to_format_string() == "A {} is a good pet"
     assert result.args[0] == ["dog"]
     assert result.args[1] == ["cat"]
 
 
-def test_analyzer_analyze_3_strings() -> None:
-    string1 = "A dog is a good pet"
-    string2 = "A cat is a good pet"
-    string3 = "A cat is a pretty pet"
-    result = analyze([string1, string2, string3])
+def test_analyzer_analyze_3_texts() -> None:
+    text1 = "A dog is a good pet"
+    text2 = "A cat is a good pet"
+    text3 = "A cat is a pretty pet"
+    result = analyze([text1, text2, text3])
 
     assert result.to_format_string() == "A {} is a {} pet"
     assert result.args[0] == ["dog", "good"]
@@ -43,6 +43,6 @@ def test_analyzer_analyze_3_strings() -> None:
     assert result.args[2] == ["cat", "pretty"]
 
 
-def test_analyze_more_than_3_strings() -> None:
+def test_analyze_more_than_3_texts() -> None:
     with pytest.raises(NotImplementedError):
         analyze(["A", "B", "C", "D"])
