@@ -136,16 +136,6 @@ class Analyzer:
         )
 
     @classmethod
-    def analyze_two_texts(cls, text1: str, text2: str) -> AnalyzerResult:
-        analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
-            list(text1), list(text2)
-        )
-        template_a = analyzer_a.to_template()
-        vars_a = analyzer_a.to_args()[:]
-        vars_b = analyzer_b.to_args()[:]
-        return AnalyzerResult.from_template(template_a, [vars_a, vars_b])
-
-    @classmethod
     def analyze_two_result(
         cls, result1: AnalyzerResult, result2: AnalyzerResult
     ) -> AnalyzerResult:
@@ -162,6 +152,13 @@ class Analyzer:
             for table in tables2
         ]
         return AnalyzerResult.from_template(template_a, [*args1, *args2])
+
+    @classmethod
+    def analyze_two_texts(cls, text1: str, text2: str) -> AnalyzerResult:
+        return cls.analyze_two_result(
+            AnalyzerResult.from_text(text1),
+            AnalyzerResult.from_text(text2),
+        )
 
     @classmethod
     def analyze_three_texts(
