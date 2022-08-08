@@ -14,12 +14,17 @@ Currently, this supports to analyze only two texts.
 
 ```python
 from template_analysis import analyze
-text1 = 'A dog is a good pet'
-text2 = 'A cat is a good pet'
-result = analyze([text1, text2])
-result.to_format_string()  # => 'A {} is a good pet'
-result.args[0]  # => ['dog']
-result.args[1]  # => ['cat']
+result = analyze([
+    "A dog is a good pet",
+    "A cat is a good pet",
+    "A cat is a pretty pet",
+    "A bird is a great pet",
+])
+result.to_format_string()  # => "A {} is a {} pet"
+result.args[0]  # => ["dog", "good"]
+result.args[1]  # => ["cat", "good"]
+result.args[2]  # => ["cat", "pretty"]
+result.args[3]  # => ["bird", "great"]
 ```
 
 ## Concepts / Future plans
@@ -27,7 +32,7 @@ result.args[1]  # => ['cat']
 ### Development plans
 
 - [x] 1. Untemplate two texts.
-- [ ] 2. Untemplate multiple / complex texts.
+- [x] 2. Untemplate multiple / complex texts.
 - [ ] 3. Untemplate nested / tree-structured texts.
 - [ ] 4. Support several features for scraping.
 - [ ] 5. Implement a more efficient algorithm.
