@@ -37,7 +37,7 @@ class PlainText:
 TemplatePart = Union[PlainText, Variable]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Template:
     parts: list[TemplatePart]
 
