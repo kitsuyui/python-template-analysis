@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, Union
 
-from .symbol import Chunk, Symbol, SymbolString, SymbolTable
+from .symbol import Chunk, Symbol, SymbolString, SymbolTable, SymbolTemplate
 
 
 @dataclass(frozen=True)
@@ -40,6 +40,18 @@ TemplatePart = Union[PlainText, Variable]
 @dataclass(frozen=True)
 class Template:
     parts: list[TemplatePart]
+
+    @classmethod
+    def from_symbol_template(cls, st: SymbolTemplate) -> Template:
+        parts: list[TemplatePart] = []
+        variables = 0
+        for chunk in st.text:
+            if isinstance(chunk, Symbol):
+                parts.append(Variable(variables))
+                variables += 1
+            else:
+                parts.append(PlainText(chunk))
+        return cls(parts)
 
     def to_format_string(self) -> str:
         return "".join(part.to_format_string() for part in self.parts)

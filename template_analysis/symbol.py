@@ -18,21 +18,25 @@ class Symbol:
 
 @dataclass
 class SymbolTable:
-    table: dict[Symbol, Chunk]
+    table: dict[Symbol, SymbolChunk]
 
     @classmethod
     def create(cls) -> SymbolTable:
         return cls({})
 
-    def add(self, symbol: Symbol, chunk: Chunk) -> None:
+    def add(self, symbol: Symbol, chunk: SymbolChunk) -> None:
         self.table[symbol] = chunk
 
     def lookup(self, symbol_or_chunk: SymbolChunk) -> Chunk:
-        if symbol_or_chunk in self.table:
-            assert isinstance(symbol_or_chunk, Symbol)
-            return self.table[symbol_or_chunk]
+        while isinstance(symbol_or_chunk, Symbol):
+            symbol_or_chunk = self.table[symbol_or_chunk]
         assert isinstance(symbol_or_chunk, Chunk)
         return symbol_or_chunk
+
+    def combined(self, other: SymbolTable) -> SymbolTable:
+        new_table = self.table.copy()
+        new_table.update(other.table)
+        return SymbolTable(new_table)
 
 
 SymbolOrCharacter = Union[Symbol, Character]

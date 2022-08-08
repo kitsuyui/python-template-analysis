@@ -2,104 +2,105 @@ from __future__ import annotations
 
 import difflib
 from dataclasses import dataclass
-from typing import Literal, Union
+from typing import Union
 
-from .matcher import Block, Match, Unique
 from .symbol import (
-    Chunk,
+    Chunks,
     Symbol,
-    SymbolChunk,
+    SymbolChunks,
     SymbolString,
     SymbolTable,
+    SymbolTemplate,
     to_symbol_chunks,
 )
-from .template import PlainText, Template
+from .template import Template
 
 
 @dataclass(frozen=True)
 class AnalyzerResult:
-    template: Template
-    args: list[list[str]]
+    text: SymbolString
+    tables: list[SymbolTable]
+
+    @property
+    def template(self) -> Template:
+        return Template.from_symbol_template(
+            SymbolTemplate(self.text[:], SymbolTable.create())
+        )
+
+    @property
+    def args(self) -> list[Chunks]:
+        return [
+            SymbolTemplate(self.text[:], table).args() for table in self.tables
+        ]
 
     def to_format_string(self) -> str:
         return self.template.to_format_string()
 
-    def conv(self) -> tuple[SymbolString, list[SymbolTable]]:
-        return self.template.remap_to_symbols(self.args)
-
     @classmethod
     def from_text(cls, text: str) -> AnalyzerResult:
         return AnalyzerResult(
-            template=Template([PlainText(text)]),
-            args=[[]],
+            text=list(text),
+            tables=[SymbolTable.create()],
         )
-
-    @classmethod
-    def from_template(
-        cls, template: Template, args: list[list[str]]
-    ) -> AnalyzerResult:
-        return AnalyzerResult(template, args)
 
 
 @dataclass
 class Analyzer:
     text: SymbolString
     pos: int
-    count_unique: int
-    blocks: list[Block]
+    parsed: SymbolChunks
+    table: SymbolTable
 
     @classmethod
     def create(cls, text: Union[str, SymbolString]) -> Analyzer:
-        return cls(list(text), pos=0, count_unique=0, blocks=[])
+        return cls(
+            list(text),
+            pos=0,
+            parsed=[],
+            table=SymbolTable.create(),
+        )
 
     def proceed(self, size: int) -> None:
         self.pos += size
 
-    def append_match(self, text: Chunk) -> None:
-        match = Match(text)
-        self.blocks.append(match)
-        self.proceed(match.size)
+    @property
+    def parsed_text(self) -> SymbolString:
+        chunks: SymbolString = []
+        for chunk in self.parsed:
+            if isinstance(chunk, Symbol):
+                chunks.append(chunk)
+            else:
+                for char in chunk:
+                    chunks.append(char)
+        return chunks
 
-    def append_unique(self, text: SymbolChunk) -> None:
-        unique = Unique(text, self.count_unique)
-        self.blocks.append(unique)
-        self.count_unique += 1
-        self.proceed(unique.size)
-
-    def append(self, type: Literal["match", "unique"], size: int) -> None:
-        if size == 0:
-            return
-
+    def append_match(self, size: int) -> None:
         start = self.pos
         stop = self.pos + size
         token: SymbolString = self.text[start:stop]
+        for s in to_symbol_chunks(token):
+            if isinstance(s, Symbol):
+                self.proceed(1)
+            else:
+                self.proceed(len(s))
+            self.parsed.append(s)
 
-        if type == "match":
-            for s in to_symbol_chunks(token):
-                assert not isinstance(s, Symbol)
-                self.append_match(s)
-        elif type == "unique":
-            for s in to_symbol_chunks(token):
-                self.append_unique(s)
+    def append_unique(self, size: int, symbol: Symbol) -> None:
+        start = self.pos
+        stop = self.pos + size
+        token: SymbolString = self.text[start:stop]
+        for s in to_symbol_chunks(token):
+            if isinstance(s, Symbol):
+                self.proceed(1)
+            else:
+                self.proceed(len(s))
+            self.parsed.append(symbol)
+            self.table.add(symbol, s)
 
-    def to_template(self) -> Template:
-        return Template([block.to_template() for block in self.blocks])
-
-    def to_args(self) -> list[Chunk]:
-        return [str(chunk) for chunk in self.to_uniques()]
-
-    def to_uniques(self) -> list[SymbolChunk]:
-        return [block.value for block in self.blocks if block.is_unique()]
-
-    def to_args_lookup_by_symbol_table(
-        self, table: SymbolTable
-    ) -> list[Chunk]:
-        return [table.lookup(arg) for arg in self.to_uniques()]
-
-    def advance(self, pos: int, size: int) -> None:
+    def advance(self, pos: int, size: int, symbol: Symbol) -> None:
         while (unmatch_length := pos - self.pos) > 0:
-            self.append("unique", unmatch_length)
-        self.append("match", size)
+            self.append_unique(unmatch_length, symbol)
+        self.append_match(size)
 
     @classmethod
     def analyze_two_symbol_strings(
@@ -111,14 +112,9 @@ class Analyzer:
         analyzer_b = cls.create(seq2)
 
         for block in blocks:
-            analyzer_a.advance(block.a, block.size)
-            analyzer_b.advance(block.b, block.size)
-
-        template_a = analyzer_a.to_template()
-        template_b = analyzer_b.to_template()
-        assert template_a == template_b, (
-            "Guessed templates are mismatch: " f"{template_a} != {template_b}"
-        )
+            symbol = Symbol.create()
+            analyzer_a.advance(block.a, block.size, symbol)
+            analyzer_b.advance(block.b, block.size, symbol)
 
         return analyzer_a, analyzer_b
 
@@ -139,19 +135,23 @@ class Analyzer:
     def analyze_two_result(
         cls, result1: AnalyzerResult, result2: AnalyzerResult
     ) -> AnalyzerResult:
-        seq1, tables1 = result1.conv()
-        seq2, tables2 = result2.conv()
-        analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(seq1, seq2)
-        template_a = analyzer_a.to_template()
-        args1 = [
-            analyzer_a.to_args_lookup_by_symbol_table(table)
-            for table in tables1
-        ]
-        args2 = [
-            analyzer_b.to_args_lookup_by_symbol_table(table)
-            for table in tables2
-        ]
-        return AnalyzerResult.from_template(template_a, [*args1, *args2])
+        analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
+            result1.text, result2.text
+        )
+        assert analyzer_a.parsed_text == analyzer_b.parsed_text
+        return AnalyzerResult(
+            analyzer_a.parsed_text,
+            [
+                *[
+                    analyzer_a.table.combined(table)
+                    for table in result1.tables
+                ],
+                *[
+                    analyzer_b.table.combined(table)
+                    for table in result2.tables
+                ],
+            ],
+        )
 
     @classmethod
     def analyze_two_texts(cls, text1: str, text2: str) -> AnalyzerResult:
@@ -171,12 +171,12 @@ class Analyzer:
         r2 = cls.analyze_two_result(result_2_and_3, result_3_and_1)
         rx = cls.analyze_two_result(r1, r2)
         assert rx.args[1] == rx.args[2]
-        return AnalyzerResult.from_template(
-            rx.template,
+        return AnalyzerResult(
+            rx.text,
             [
-                rx.args[0],
-                rx.args[1],
-                rx.args[3],
+                rx.tables[0],
+                rx.tables[1],
+                rx.tables[3],
             ],
         )
 
