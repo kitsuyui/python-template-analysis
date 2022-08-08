@@ -1,16 +1,13 @@
 import pytest
 
-from template_analysis import Analyzer, analyze
+from template_analysis import analyze
 
 
-def test_analyzer_analyze_two_texts() -> None:
-    text1 = "A dog is a good pet"
-    text2 = "A cat is a good pet"
-    result = Analyzer.analyze_two_texts(text1, text2)
+def test_analyzer_analyze_0_text() -> None:
+    with pytest.raises(ValueError) as e:
+        analyze([])
 
-    assert result.to_format_string() == "A {} is a good pet"
-    assert result.args[0] == ["dog"]
-    assert result.args[1] == ["cat"]
+    assert str(e.value) == "texts are empty."
 
 
 def test_analyzer_analyze_1_text() -> None:
@@ -43,6 +40,15 @@ def test_analyzer_analyze_3_texts() -> None:
     assert result.args[2] == ["cat", "pretty"]
 
 
-def test_analyze_more_than_3_texts() -> None:
-    with pytest.raises(NotImplementedError):
-        analyze(["A", "B", "C", "D"])
+def test_analyzer_analyze_4_texts() -> None:
+    text1 = "A dog is a good pet"
+    text2 = "A cat is a good pet"
+    text3 = "A cat is a pretty pet"
+    text4 = "A bird is a great pet"
+    result = analyze([text1, text2, text3, text4])
+
+    assert result.to_format_string() == "A {} is a {} pet"
+    assert result.args[0] == ["dog", "good"]
+    assert result.args[1] == ["cat", "good"]
+    assert result.args[2] == ["cat", "pretty"]
+    assert result.args[3] == ["bird", "great"]

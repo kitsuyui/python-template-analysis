@@ -120,16 +120,7 @@ class Analyzer:
 
     @classmethod
     def analyze(cls, texts: list[str]) -> AnalyzerResult:
-        if len(texts) == 1:
-            return AnalyzerResult.from_text(texts[0])
-        elif len(texts) == 2:
-            return cls.analyze_two_texts(texts[0], texts[1])
-        elif len(texts) == 3:
-            return cls.analyze_three_texts(texts[0], texts[1], texts[2])
-
-        raise NotImplementedError(
-            "Analyze more than three strings are not implemented yet."
-        )
+        return cls.analyze_texts(texts)
 
     @classmethod
     def analyze_two_result(
@@ -154,31 +145,20 @@ class Analyzer:
         )
 
     @classmethod
-    def analyze_two_texts(cls, text1: str, text2: str) -> AnalyzerResult:
-        return cls.analyze_two_result(
-            AnalyzerResult.from_text(text1),
-            AnalyzerResult.from_text(text2),
-        )
+    def analyze_texts(cls, texts: list[str]) -> AnalyzerResult:
+        texts = texts[:]
 
-    @classmethod
-    def analyze_three_texts(
-        cls, text1: str, text2: str, text3: str
-    ) -> AnalyzerResult:
-        result_1_and_2 = cls.analyze_two_texts(text1, text2)
-        result_2_and_3 = cls.analyze_two_texts(text2, text3)
-        result_3_and_1 = cls.analyze_two_texts(text3, text1)
-        r1 = cls.analyze_two_result(result_1_and_2, result_2_and_3)
-        r2 = cls.analyze_two_result(result_2_and_3, result_3_and_1)
-        rx = cls.analyze_two_result(r1, r2)
-        assert rx.args[1] == rx.args[2]
-        return AnalyzerResult(
-            rx.text,
-            [
-                rx.tables[0],
-                rx.tables[1],
-                rx.tables[3],
-            ],
-        )
+        if not texts:
+            raise ValueError("texts are empty.")
+
+        text = texts.pop(0)
+        acc = AnalyzerResult.from_text(text)
+        while texts:
+            text = texts.pop(0)
+            curr = AnalyzerResult.from_text(text)
+            acc = cls.analyze_two_result(acc, curr)
+
+        return acc
 
 
 analyze = Analyzer.analyze
