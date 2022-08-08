@@ -27,6 +27,19 @@ class AnalyzerResult:
     def conv(self) -> tuple[SymbolString, list[SymbolTable]]:
         return self.template.remap_to_symbols(self.args)
 
+    @classmethod
+    def from_text(cls, text: str) -> AnalyzerResult:
+        return AnalyzerResult(
+            template=Template([PlainText(text)]),
+            args=[[]],
+        )
+
+    @classmethod
+    def from_template(
+        cls, template: Template, args: list[list[str]]
+    ) -> AnalyzerResult:
+        return AnalyzerResult(template, args)
+
 
 @dataclass
 class Analyzer:
@@ -83,13 +96,36 @@ class Analyzer:
     ) -> list[Chunk]:
         return [table.lookup(arg) for arg in self.to_uniques()]
 
+    def advance(self, pos: int, size: int) -> None:
+        while (unmatch_length := pos - self.pos) > 0:
+            self.append("unique", unmatch_length)
+        self.append("match", size)
+
+    @classmethod
+    def analyze_two_symbol_strings(
+        cls, seq1: SymbolString, seq2: SymbolString
+    ) -> tuple[Analyzer, Analyzer]:
+        matcher = difflib.SequenceMatcher(None, seq1, seq2)
+        blocks = matcher.get_matching_blocks()
+        analyzer_a = cls.create(seq1)
+        analyzer_b = cls.create(seq2)
+
+        for block in blocks:
+            analyzer_a.advance(block.a, block.size)
+            analyzer_b.advance(block.b, block.size)
+
+        template_a = analyzer_a.to_template()
+        template_b = analyzer_b.to_template()
+        assert template_a == template_b, (
+            "Guessed templates are mismatch: " f"{template_a} != {template_b}"
+        )
+
+        return analyzer_a, analyzer_b
+
     @classmethod
     def analyze(cls, texts: list[str]) -> AnalyzerResult:
         if len(texts) == 1:
-            return AnalyzerResult(
-                template=Template([PlainText(texts[0])]),
-                args=[[]],
-            )
+            return AnalyzerResult.from_text(texts[0])
         elif len(texts) == 2:
             return cls.analyze_two_texts(texts[0], texts[1])
         elif len(texts) == 3:
@@ -101,30 +137,13 @@ class Analyzer:
 
     @classmethod
     def analyze_two_texts(cls, text1: str, text2: str) -> AnalyzerResult:
-        matcher = difflib.SequenceMatcher(None, text1, text2)
-        blocks = matcher.get_matching_blocks()
-        analyzer_a = cls.create(text1)
-        analyzer_b = cls.create(text2)
-
-        for block in blocks:
-            while (unmatch_length := block.a - analyzer_a.pos) > 0:
-                analyzer_a.append("unique", unmatch_length)
-            analyzer_a.append("match", block.size)
-
-            while (unmatch_length := block.b - analyzer_b.pos) > 0:
-                analyzer_b.append("unique", unmatch_length)
-            analyzer_b.append("match", block.size)
-
+        analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
+            list(text1), list(text2)
+        )
         template_a = analyzer_a.to_template()
-        template_b = analyzer_b.to_template()
         vars_a = analyzer_a.to_args()[:]
         vars_b = analyzer_b.to_args()[:]
-
-        assert template_a == template_b, (
-            "Guessed templates are mismatch: " f"{template_a} != {template_b}"
-        )
-
-        return AnalyzerResult(template_a, [vars_a, vars_b])
+        return AnalyzerResult.from_template(template_a, [vars_a, vars_b])
 
     @classmethod
     def analyze_two_result(
@@ -132,25 +151,8 @@ class Analyzer:
     ) -> AnalyzerResult:
         seq1, tables1 = result1.conv()
         seq2, tables2 = result2.conv()
-        matcher = difflib.SequenceMatcher(None, seq1, seq2)
-        blocks = matcher.get_matching_blocks()
-        analyzer_a = cls.create(seq1)
-        analyzer_b = cls.create(seq2)
-        for block in blocks:
-            while (unmatch_length := block.a - analyzer_a.pos) > 0:
-                analyzer_a.append("unique", unmatch_length)
-            analyzer_a.append("match", block.size)
-
-            while (unmatch_length := block.b - analyzer_b.pos) > 0:
-                analyzer_b.append("unique", unmatch_length)
-            analyzer_b.append("match", block.size)
-
+        analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(seq1, seq2)
         template_a = analyzer_a.to_template()
-        template_b = analyzer_b.to_template()
-        assert template_a == template_b, (
-            "Guessed templates are mismatch: " f"{template_a} != {template_b}"
-        )
-
         args1 = [
             analyzer_a.to_args_lookup_by_symbol_table(table)
             for table in tables1
@@ -159,8 +161,7 @@ class Analyzer:
             analyzer_b.to_args_lookup_by_symbol_table(table)
             for table in tables2
         ]
-
-        return AnalyzerResult(template_a, [*args1, *args2])
+        return AnalyzerResult.from_template(template_a, [*args1, *args2])
 
     @classmethod
     def analyze_three_texts(
@@ -172,8 +173,14 @@ class Analyzer:
         r1 = cls.analyze_two_result(result_1_and_2, result_2_and_3)
         r2 = cls.analyze_two_result(result_2_and_3, result_3_and_1)
         rx = cls.analyze_two_result(r1, r2)
-        return AnalyzerResult(
-            rx.template, [rx.args[0], rx.args[1], rx.args[3]]
+        assert rx.args[1] == rx.args[2]
+        return AnalyzerResult.from_template(
+            rx.template,
+            [
+                rx.args[0],
+                rx.args[1],
+                rx.args[3],
+            ],
         )
 
 
