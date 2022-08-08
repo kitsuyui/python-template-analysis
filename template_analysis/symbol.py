@@ -37,6 +37,7 @@ class SymbolTable:
 
 SymbolOrCharacter = Union[Symbol, Character]
 SymbolChunk = Union[Symbol, Chunk]
+Chunks = list[Chunk]
 SymbolString = list[SymbolOrCharacter]
 SymbolChunks = list[SymbolChunk]
 
@@ -57,3 +58,19 @@ def to_symbol_chunks(
     if chunk:
         x.append(chunk)
     return x
+
+
+@dataclass(frozen=True)
+class SymbolTemplate:
+    text: SymbolChunks
+    table: SymbolTable
+
+    def resolve(self) -> Chunks:
+        return [self.table.lookup(chunk) for chunk in self.text]
+
+    def args(self) -> list[Chunk]:
+        return [
+            self.table.lookup(chunk)
+            for chunk in self.text
+            if isinstance(chunk, Symbol)
+        ]
