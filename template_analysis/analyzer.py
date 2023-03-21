@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import difflib
 from dataclasses import dataclass
-from typing import Union
 
 from .symbol import (
     Chunks,
@@ -52,7 +51,7 @@ class Analyzer:
     table: SymbolTable
 
     @classmethod
-    def create(cls, text: Union[str, SymbolString]) -> Analyzer:
+    def create(cls, text: str | SymbolString) -> Analyzer:
         return cls(
             list(text),
             pos=0,
