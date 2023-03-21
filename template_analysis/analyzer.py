@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import difflib
 from dataclasses import dataclass
+from typing import Iterator
 
 from .symbol import (
     Chunks,
     Symbol,
+    SymbolChunk,
     SymbolChunks,
     SymbolString,
     SymbolTable,
@@ -73,7 +75,7 @@ class Analyzer:
                     chunks.append(char)
         return chunks
 
-    def append_match(self, size: int) -> None:
+    def __read_n_tokens(self, size: int) -> Iterator[SymbolChunk]:
         start = self.pos
         stop = self.pos + size
         token: SymbolString = self.text[start:stop]
@@ -82,17 +84,14 @@ class Analyzer:
                 self.proceed(1)
             else:
                 self.proceed(len(s))
+            yield s
+
+    def append_match(self, size: int) -> None:
+        for s in self.__read_n_tokens(size):
             self.parsed.append(s)
 
     def append_unique(self, size: int, symbol: Symbol) -> None:
-        start = self.pos
-        stop = self.pos + size
-        token: SymbolString = self.text[start:stop]
-        for s in to_symbol_chunks(token):
-            if isinstance(s, Symbol):
-                self.proceed(1)
-            else:
-                self.proceed(len(s))
+        for s in self.__read_n_tokens(size):
             self.parsed.append(symbol)
             self.table.add(symbol, s)
 
