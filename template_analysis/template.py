@@ -8,6 +8,8 @@ from .symbol import Symbol, SymbolTemplate
 
 @dataclass(frozen=True)
 class Variable:
+    """A extracted variable in a template."""
+
     id: int
 
     def to_format_string(self) -> str:
@@ -16,17 +18,26 @@ class Variable:
 
 @dataclass(frozen=True)
 class PlainText:
+    """A plain text chunk in a template."""
+
     value: str
 
     def to_format_string(self) -> str:
         return self.value
 
 
+# A part of a template is either a plain text chunk or a variable.
 TemplatePart = Union[PlainText, Variable]
 
 
 @dataclass(frozen=True)
 class Template:
+    """A template extracted from a formatted string.
+
+    A template is a list of parts,
+    where each part is either a plain text chunk or a variable.
+    """
+
     parts: list[TemplatePart]
 
     @classmethod
