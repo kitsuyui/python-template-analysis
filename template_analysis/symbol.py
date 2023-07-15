@@ -9,6 +9,8 @@ Chunk = str
 
 @dataclass(frozen=True)
 class Symbol:
+    """A symbol in a template."""
+
     value: object
 
     @classmethod
@@ -18,6 +20,8 @@ class Symbol:
 
 @dataclass
 class SymbolTable:
+    """A table of symbols."""
+
     table: dict[Symbol, SymbolChunk]
 
     @classmethod
