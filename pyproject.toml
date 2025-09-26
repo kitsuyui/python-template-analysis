@@ -28,8 +28,8 @@ Homepage = "https://github.com/kitsuyui/python-template-analysis"
 package-data = { "template_analysis" = ["py.typed"], "*" = ["README.md, LICENSE"] }
 package-dir = { "template_analysis" = "template_analysis" }
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest",
     "pytest-cov",
     "poethepoet",
