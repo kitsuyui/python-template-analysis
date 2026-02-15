@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/pypi/pyversions/template-analysis.svg)](https://badge.fury.io/py/template-analysis)
 [![PyPI version](https://img.shields.io/pypi/v/template-analysis.svg)](https://pypi.python.org/pypi/template-analysis/)
-[![codecov](https://codecov.io/gh/kitsuyui/python-template-analysis/branch/main/graph/badge.svg?token=AMEP8YUYXA)](https://codecov.io/gh/kitsuyui/python-template-analysis)
+![Coverage](https://raw.githubusercontent.com/kitsuyui/octocov-central/main/badges/kitsuyui/python-template-analysis/coverage.svg)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Generate template and extract variables from texts.
