@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import difflib
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator
 
 from .symbol import (
     Chunks,
@@ -25,7 +25,7 @@ class AnalyzerResult:
     @property
     def template(self) -> Template:
         return Template.from_symbol_template(
-            SymbolTemplate(self.text[:], SymbolTable.create())
+            SymbolTemplate(self.text[:], SymbolTable.create()),
         )
 
     @property
@@ -102,7 +102,7 @@ class Analyzer:
 
     @classmethod
     def analyze_two_symbol_strings(
-        cls, seq1: SymbolString, seq2: SymbolString
+        cls, seq1: SymbolString, seq2: SymbolString,
     ) -> tuple[Analyzer, Analyzer]:
         matcher = difflib.SequenceMatcher(None, seq1, seq2)
         blocks = matcher.get_matching_blocks()
@@ -122,10 +122,10 @@ class Analyzer:
 
     @classmethod
     def analyze_two_result(
-        cls, result1: AnalyzerResult, result2: AnalyzerResult
+        cls, result1: AnalyzerResult, result2: AnalyzerResult,
     ) -> AnalyzerResult:
         analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
-            result1.text, result2.text
+            result1.text, result2.text,
         )
         assert analyzer_a.parsed_text == analyzer_b.parsed_text
         return AnalyzerResult(
