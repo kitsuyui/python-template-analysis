@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Union
 
 Character = str
 Chunk = str
@@ -43,8 +42,8 @@ class SymbolTable:
         return SymbolTable(new_table)
 
 
-SymbolOrCharacter = Union[Symbol, Character]
-SymbolChunk = Union[Symbol, Chunk]
+SymbolOrCharacter = Symbol | Character
+SymbolChunk = Symbol | Chunk
 Chunks = list[Chunk]
 SymbolString = list[SymbolOrCharacter]
 SymbolChunks = list[SymbolChunk]

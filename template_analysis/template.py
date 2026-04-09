@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Union
 
 from .symbol import Symbol, SymbolTemplate
 
@@ -27,7 +26,7 @@ class PlainText:
 
 
 # A part of a template is either a plain text chunk or a variable.
-TemplatePart = Union[PlainText, Variable]
+TemplatePart = PlainText | Variable
 
 
 @dataclass(frozen=True)
