@@ -17,6 +17,12 @@ from .symbol import (
 from .template import Template
 
 
+def chunk_to_symbol_string(chunk: SymbolChunk) -> SymbolString:
+    if isinstance(chunk, Symbol):
+        return [chunk]
+    return list(chunk)
+
+
 @dataclass(frozen=True)
 class AnalyzerResult:
     text: SymbolString
@@ -66,14 +72,11 @@ class Analyzer:
 
     @property
     def parsed_text(self) -> SymbolString:
-        chunks: SymbolString = []
-        for chunk in self.parsed:
-            if isinstance(chunk, Symbol):
-                chunks.append(chunk)
-            else:
-                for char in chunk:
-                    chunks.append(char)
-        return chunks
+        return [
+            symbol_or_character
+            for chunk in self.parsed
+            for symbol_or_character in chunk_to_symbol_string(chunk)
+        ]
 
     def __read_n_tokens(self, size: int) -> Iterator[SymbolChunk]:
         start = self.pos

@@ -49,22 +49,25 @@ SymbolString = list[SymbolOrCharacter]
 SymbolChunks = list[SymbolChunk]
 
 
+def append_chunk(symbol_chunks: SymbolChunks, chunk: Chunk) -> Chunk:
+    if chunk:
+        symbol_chunks.append(chunk)
+    return ""
+
+
 def to_symbol_chunks(
     symbol_string: SymbolString,
 ) -> SymbolChunks:
-    x: SymbolChunks = []
+    symbol_chunks: SymbolChunks = []
     chunk: str = ""
     for symbol_or_character in symbol_string:
         if isinstance(symbol_or_character, Symbol):
-            if chunk:
-                x.append(chunk)
-                chunk = ""
-            x.append(symbol_or_character)
-        else:
-            chunk += symbol_or_character
-    if chunk:
-        x.append(chunk)
-    return x
+            chunk = append_chunk(symbol_chunks, chunk)
+            symbol_chunks.append(symbol_or_character)
+            continue
+        chunk += symbol_or_character
+    append_chunk(symbol_chunks, chunk)
+    return symbol_chunks
 
 
 @dataclass(frozen=True)
