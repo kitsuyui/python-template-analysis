@@ -1,5 +1,5 @@
 [project]
-name = "throttle-controller"
+name = "template-analysis"
 dynamic = ["version"]
 requires-python = ">=3.10"
 dependencies = []
