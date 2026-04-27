@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [options]
-exclude-newer = "2026-04-12T02:07:08.72517967Z"
+exclude-newer = "2026-04-25T14:59:07.319861Z"
 exclude-newer-span = "P2D"
 
 [[package]]
@@ -498,7 +498,7 @@ wheels = [
 ]
 
 [[package]]
-name = "throttle-controller"
+name = "template-analysis"
 source = { editable = "." }
 
 [package.dev-dependencies]
