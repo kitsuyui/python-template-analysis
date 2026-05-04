@@ -10,7 +10,7 @@ In other words, template-analysis makes reverse template (untemplate).
 
 ## Usage
 
-Currently, this supports to analyze only two texts.
+Currently, this supports analyzing one or more texts.
 
 ```python
 from template_analysis import analyze
