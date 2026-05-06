@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
   actionlint:
     uses: kitsuyui/gh-actions-workflows/.github/workflows/actionlint.yml@main
