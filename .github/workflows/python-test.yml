@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   actionlint:
-    uses: kitsuyui/gh-actions-workflows/.github/workflows/actionlint.yml@main
+    uses: kitsuyui/gh-actions-workflows/.github/workflows/actionlint.yml@0b691527a4dde052c79eae22706131a7726a2bba # main
   test:
     runs-on: ubuntu-latest
     strategy:
