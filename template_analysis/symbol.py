@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+from types import MappingProxyType
 
 Character = str
 Chunk = str
@@ -21,14 +23,16 @@ class Symbol:
 class SymbolTable:
     """A table of symbols."""
 
-    table: dict[Symbol, SymbolChunk]
+    table: Mapping[Symbol, SymbolChunk]
 
     @classmethod
     def create(cls) -> SymbolTable:
-        return cls({})
+        empty: dict[Symbol, SymbolChunk] = {}
+        return cls(MappingProxyType(empty))
 
-    def add(self, symbol: Symbol, chunk: SymbolChunk) -> None:
-        self.table[symbol] = chunk
+    def add(self, symbol: Symbol, chunk: SymbolChunk) -> SymbolTable:
+        new: dict[Symbol, SymbolChunk] = {**self.table, symbol: chunk}
+        return SymbolTable(MappingProxyType(new))
 
     def _resolve_symbol(self, symbol: Symbol) -> SymbolChunk:
         resolved = self.table.get(symbol)
@@ -52,10 +56,10 @@ class SymbolTable:
 
     def combined(self, other: SymbolTable) -> SymbolTable:
         merged: dict[Symbol, SymbolChunk] = {**self.table, **other.table}
-        merged_table = SymbolTable(merged)
+        merged_table = SymbolTable(MappingProxyType(merged))
         # Flatten symbol chains to depth 1 so lookup() stays O(1) per call.
         return SymbolTable(
-            {s: merged_table.lookup(s) for s in merged},
+            MappingProxyType({s: merged_table.lookup(s) for s in merged}),
         )
 
 
