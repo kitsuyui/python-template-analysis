@@ -23,10 +23,23 @@ def chunk_to_symbol_string(chunk: SymbolChunk) -> SymbolString:
     return list(chunk)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class AnalyzerResult:
     text: SymbolString
     tables: list[SymbolTable]
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AnalyzerResult):
+            return NotImplemented
+        return (
+            self.to_format_string() == other.to_format_string()
+            and self.args == other.args
+        )
+
+    def __hash__(self) -> int:
+        return hash(
+            (self.to_format_string(), tuple(tuple(a) for a in self.args)),
+        )
 
     @property
     def template(self) -> Template:
@@ -105,7 +118,9 @@ class Analyzer:
 
     @classmethod
     def analyze_two_symbol_strings(
-        cls, seq1: SymbolString, seq2: SymbolString,
+        cls,
+        seq1: SymbolString,
+        seq2: SymbolString,
     ) -> tuple[Analyzer, Analyzer]:
         matcher = difflib.SequenceMatcher(None, seq1, seq2)
         blocks = matcher.get_matching_blocks()
@@ -125,10 +140,13 @@ class Analyzer:
 
     @classmethod
     def analyze_two_result(
-        cls, result1: AnalyzerResult, result2: AnalyzerResult,
+        cls,
+        result1: AnalyzerResult,
+        result2: AnalyzerResult,
     ) -> AnalyzerResult:
         analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
-            result1.text, result2.text,
+            result1.text,
+            result2.text,
         )
         assert analyzer_a.parsed_text == analyzer_b.parsed_text
         return AnalyzerResult(
