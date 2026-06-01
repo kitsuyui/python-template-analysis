@@ -32,7 +32,13 @@ class SymbolTable:
 
     def lookup(self, symbol_or_chunk: SymbolChunk) -> Chunk:
         while isinstance(symbol_or_chunk, Symbol):
-            symbol_or_chunk = self.table[symbol_or_chunk]
+            resolved = self.table.get(symbol_or_chunk)
+            if resolved is None:
+                raise KeyError(
+                    f"Symbol not found in table"
+                    f" (table size: {len(self.table)})",
+                )
+            symbol_or_chunk = resolved
         assert isinstance(symbol_or_chunk, Chunk)
         return symbol_or_chunk
 

@@ -1,3 +1,5 @@
+import pytest
+
 from template_analysis.symbol import (
     Symbol,
     SymbolTable,
@@ -37,6 +39,13 @@ def test_symbol_table() -> None:
 
     assert table.lookup(symbol1) == "a"
     assert table.lookup("b") == "b"
+
+
+def test_symbol_table_lookup_missing_symbol() -> None:
+    table = SymbolTable.create()
+    unknown = Symbol.create()
+    with pytest.raises(KeyError, match=r"Symbol not found in table"):
+        table.lookup(unknown)
 
 
 def test_symbol_template() -> None:
