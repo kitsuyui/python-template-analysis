@@ -175,21 +175,26 @@ class Analyzer:
         return analyzer_a, analyzer_b
 
     @classmethod
-    def analyze(cls, texts: list[str]) -> AnalyzerResult:
+    def analyze(
+        cls,
+        texts: list[str],
+        max_texts: int | None = None,
+    ) -> AnalyzerResult:
         """Analyze a list of texts and extract a common template.
 
         Args:
             texts: Non-empty list of strings to analyze.
+            max_texts: Optional upper bound on the number of texts to analyze.
 
         Returns:
             An AnalyzerResult containing the extracted template and per-text
             argument lists.
 
         Raises:
-            ValueError: If texts is empty.
+            ValueError: If texts is empty or exceeds max_texts.
 
         """
-        return cls._analyze_texts(texts)
+        return cls._analyze_texts(texts, max_texts=max_texts)
 
     @classmethod
     def analyze_two_result(
@@ -222,12 +227,26 @@ class Analyzer:
             ],
         )
 
+    @staticmethod
+    def _assert_max_texts(n: int, max_texts: int | None) -> None:
+        if max_texts is not None and n > max_texts:
+            raise ValueError(
+                f"Too many texts: got {n}, max_texts={max_texts}. "
+                "analyze_texts holds O(N) SymbolTable entries in memory.",
+            )
+
     @classmethod
-    def _analyze_texts(cls, texts: list[str]) -> AnalyzerResult:
+    def _analyze_texts(
+        cls,
+        texts: list[str],
+        max_texts: int | None = None,
+    ) -> AnalyzerResult:
         texts = texts[:]
 
         if not texts:
             raise ValueError("texts are empty.")
+
+        cls._assert_max_texts(len(texts), max_texts)
 
         text = texts.pop(0)
         acc = AnalyzerResult._from_text(text)
