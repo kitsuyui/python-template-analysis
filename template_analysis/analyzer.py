@@ -125,6 +125,14 @@ class Analyzer:
     ) -> tuple[Analyzer, Analyzer]:
         matcher = difflib.SequenceMatcher(None, seq1, seq2, autojunk=False)
         blocks = matcher.get_matching_blocks()
+        # SequenceMatcher guarantees a sentinel (len(seq1), len(seq2), 0) that
+        # drives tail content through advance() to complete both analyzers.
+        sentinel = blocks[-1]
+        assert blocks and (sentinel.a, sentinel.b, sentinel.size) == (
+            len(seq1),
+            len(seq2),
+            0,
+        )
         analyzer_a = cls.create(seq1)
         analyzer_b = cls.create(seq2)
 
