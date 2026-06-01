@@ -52,3 +52,17 @@ def test_analyzer_analyze_4_texts() -> None:
     assert result.args[1] == ["cat", "good"]
     assert result.args[2] == ["cat", "pretty"]
     assert result.args[3] == ["bird", "great"]
+
+
+def test_analyzer_analyze_long_texts_autojunk_disabled() -> None:
+    # Texts over 200 chars with high-frequency chars (space ~50%) triggered
+    # SequenceMatcher autojunk, causing the shared prefix to be excluded from
+    # matching and incorrectly detected as a variable. autojunk=False prevents this.
+    prefix = "a " * 95  # 190 chars; 'a' and ' ' each appear ~50% — autojunk candidates
+    text1 = prefix + "dog"
+    text2 = prefix + "cat"
+    result = analyze([text1, text2])
+
+    assert result.to_format_string() == prefix + "{}"
+    assert result.args[0] == ["dog"]
+    assert result.args[1] == ["cat"]

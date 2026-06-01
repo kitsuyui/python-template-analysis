@@ -105,9 +105,11 @@ class Analyzer:
 
     @classmethod
     def analyze_two_symbol_strings(
-        cls, seq1: SymbolString, seq2: SymbolString,
+        cls,
+        seq1: SymbolString,
+        seq2: SymbolString,
     ) -> tuple[Analyzer, Analyzer]:
-        matcher = difflib.SequenceMatcher(None, seq1, seq2)
+        matcher = difflib.SequenceMatcher(None, seq1, seq2, autojunk=False)
         blocks = matcher.get_matching_blocks()
         analyzer_a = cls.create(seq1)
         analyzer_b = cls.create(seq2)
@@ -125,10 +127,13 @@ class Analyzer:
 
     @classmethod
     def analyze_two_result(
-        cls, result1: AnalyzerResult, result2: AnalyzerResult,
+        cls,
+        result1: AnalyzerResult,
+        result2: AnalyzerResult,
     ) -> AnalyzerResult:
         analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
-            result1.text, result2.text,
+            result1.text,
+            result2.text,
         )
         assert analyzer_a.parsed_text == analyzer_b.parsed_text
         return AnalyzerResult(
