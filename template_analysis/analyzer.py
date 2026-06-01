@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import difflib
+import unicodedata
 from collections.abc import Iterator
 from dataclasses import dataclass
 
@@ -46,7 +47,7 @@ class AnalyzerResult:
     @classmethod
     def _from_text(cls, text: str) -> AnalyzerResult:
         return AnalyzerResult(
-            text=list(text),
+            text=list(unicodedata.normalize("NFC", text)),
             tables=[SymbolTable.create()],
         )
 

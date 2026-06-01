@@ -1,3 +1,5 @@
+import unicodedata
+
 import pytest
 
 from template_analysis import analyze
@@ -95,3 +97,14 @@ def test_analyzer_to_format_string_escapes_literal_braces() -> None:
     assert format_string.endswith(" in {{group}}")
     assert format_string.format(*result.args[0]) == text1
     assert format_string.format(*result.args[1]) == text2
+
+
+def test_analyzer_analyze_mixed_unicode_normalization() -> None:
+    # NFC and NFD of the same text must not raise RuntimeError.
+    # HFS+/APFS stores filenames as NFD; Linux keeps NFC.
+    nfc = unicodedata.normalize("NFC", "café")
+    nfd = unicodedata.normalize("NFD", "café")
+    result = analyze([nfc, nfd])
+    assert result.to_format_string() == "café"
+    assert result.args[0] == []
+    assert result.args[1] == []
