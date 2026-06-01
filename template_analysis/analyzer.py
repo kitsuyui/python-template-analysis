@@ -44,7 +44,7 @@ class AnalyzerResult:
         return self.template.to_format_string()
 
     @classmethod
-    def from_text(cls, text: str) -> AnalyzerResult:
+    def _from_text(cls, text: str) -> AnalyzerResult:
         return AnalyzerResult(
             text=list(text),
             tables=[SymbolTable.create()],
@@ -105,7 +105,9 @@ class Analyzer:
 
     @classmethod
     def analyze_two_symbol_strings(
-        cls, seq1: SymbolString, seq2: SymbolString,
+        cls,
+        seq1: SymbolString,
+        seq2: SymbolString,
     ) -> tuple[Analyzer, Analyzer]:
         matcher = difflib.SequenceMatcher(None, seq1, seq2)
         blocks = matcher.get_matching_blocks()
@@ -121,14 +123,17 @@ class Analyzer:
 
     @classmethod
     def analyze(cls, texts: list[str]) -> AnalyzerResult:
-        return cls.analyze_texts(texts)
+        return cls._analyze_texts(texts)
 
     @classmethod
     def analyze_two_result(
-        cls, result1: AnalyzerResult, result2: AnalyzerResult,
+        cls,
+        result1: AnalyzerResult,
+        result2: AnalyzerResult,
     ) -> AnalyzerResult:
         analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
-            result1.text, result2.text,
+            result1.text,
+            result2.text,
         )
         assert analyzer_a.parsed_text == analyzer_b.parsed_text
         return AnalyzerResult(
@@ -146,17 +151,17 @@ class Analyzer:
         )
 
     @classmethod
-    def analyze_texts(cls, texts: list[str]) -> AnalyzerResult:
+    def _analyze_texts(cls, texts: list[str]) -> AnalyzerResult:
         texts = texts[:]
 
         if not texts:
             raise ValueError("texts are empty.")
 
         text = texts.pop(0)
-        acc = AnalyzerResult.from_text(text)
+        acc = AnalyzerResult._from_text(text)
         while texts:
             text = texts.pop(0)
-            curr = AnalyzerResult.from_text(text)
+            curr = AnalyzerResult._from_text(text)
             acc = cls.analyze_two_result(acc, curr)
 
         return acc
