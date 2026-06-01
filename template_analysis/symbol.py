@@ -37,9 +37,12 @@ class SymbolTable:
         return symbol_or_chunk
 
     def combined(self, other: SymbolTable) -> SymbolTable:
-        new_table = self.table.copy()
-        new_table.update(other.table)
-        return SymbolTable(new_table)
+        merged: dict[Symbol, SymbolChunk] = {**self.table, **other.table}
+        merged_table = SymbolTable(merged)
+        # Flatten symbol chains to depth 1 so lookup() stays O(1) per call.
+        return SymbolTable(
+            {s: merged_table.lookup(s) for s in merged},
+        )
 
 
 SymbolOrCharacter = Symbol | Character
