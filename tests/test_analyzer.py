@@ -79,6 +79,19 @@ def test_analyzer_analyze_long_texts_autojunk_disabled() -> None:
     text2 = prefix + "cat"
     result = analyze([text1, text2])
 
-    assert result.to_format_string() == prefix + "{}"
+    assert result.to_format_string() == prefix + "{0}"
     assert result.args[0] == ["dog"]
     assert result.args[1] == ["cat"]
+
+
+def test_analyzer_to_format_string_escapes_literal_braces() -> None:
+    text1 = "{name} is a dog in {group}"
+    text2 = "{name} is a cat in {group}"
+    result = analyze([text1, text2])
+
+    format_string = result.to_format_string()
+
+    assert format_string.startswith("{{name}} is a ")
+    assert format_string.endswith(" in {{group}}")
+    assert format_string.format(*result.args[0]) == text1
+    assert format_string.format(*result.args[1]) == text2
