@@ -123,7 +123,7 @@ class Analyzer:
         seq1: SymbolString,
         seq2: SymbolString,
     ) -> tuple[Analyzer, Analyzer]:
-        matcher = difflib.SequenceMatcher(None, seq1, seq2)
+        matcher = difflib.SequenceMatcher(None, seq1, seq2, autojunk=False)
         blocks = matcher.get_matching_blocks()
         analyzer_a = cls.create(seq1)
         analyzer_b = cls.create(seq2)
