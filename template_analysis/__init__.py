@@ -11,10 +11,20 @@ try:
 except ImportError:
     __version__ = "unknown"
 from .analyzer import Analyzer, AnalyzerResult, analyze
+from .symbol import Chunks, Symbol, SymbolString, SymbolTable
+from .template import PlainText, Template, TemplatePart, Variable
 
 __all__ = [
     "Analyzer",
     "AnalyzerResult",
+    "Chunks",
+    "PlainText",
+    "Symbol",
+    "SymbolString",
+    "SymbolTable",
+    "Template",
+    "TemplatePart",
+    "Variable",
     "__version__",
     "analyze",
 ]
