@@ -33,7 +33,12 @@ class SymbolTable:
     def lookup(self, symbol_or_chunk: SymbolChunk) -> Chunk:
         while isinstance(symbol_or_chunk, Symbol):
             symbol_or_chunk = self.table[symbol_or_chunk]
-        assert isinstance(symbol_or_chunk, Chunk)
+        if not isinstance(symbol_or_chunk, Chunk):
+            raise RuntimeError(
+                f"Internal invariant violated: expected Chunk after symbol "
+                f"resolution but got {type(symbol_or_chunk).__name__!r}. "
+                "This indicates an unresolvable symbol or a cycle.",
+            )
         return symbol_or_chunk
 
     def combined(self, other: SymbolTable) -> SymbolTable:
