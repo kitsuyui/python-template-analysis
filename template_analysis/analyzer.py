@@ -98,9 +98,23 @@ class Analyzer:
             self.parsed.append(symbol)
             self.table.add(symbol, s)
 
-    def advance(self, pos: int, size: int, symbol: Symbol) -> None:
-        while (unmatch_length := pos - self.pos) > 0:
-            self.append_unique(unmatch_length, symbol)
+    def append_unique_or_empty(self, size: int, symbol: Symbol) -> None:
+        if size == 0:
+            self.parsed.append(symbol)
+            self.table.add(symbol, "")
+            return
+        self.append_unique(size, symbol)
+
+    def advance(
+        self,
+        pos: int,
+        size: int,
+        symbol: Symbol,
+        force_unique: bool = False,
+    ) -> None:
+        unmatch_length = pos - self.pos
+        if force_unique or unmatch_length > 0:
+            self.append_unique_or_empty(unmatch_length, symbol)
         self.append_match(size)
 
     @classmethod
@@ -116,8 +130,21 @@ class Analyzer:
 
         for block in blocks:
             symbol = Symbol.create()
-            analyzer_a.advance(block.a, block.size, symbol)
-            analyzer_b.advance(block.b, block.size, symbol)
+            unmatch_a = block.a - analyzer_a.pos
+            unmatch_b = block.b - analyzer_b.pos
+            force_unique = unmatch_a > 0 or unmatch_b > 0
+            analyzer_a.advance(
+                block.a,
+                block.size,
+                symbol,
+                force_unique,
+            )
+            analyzer_b.advance(
+                block.b,
+                block.size,
+                symbol,
+                force_unique,
+            )
 
         return analyzer_a, analyzer_b
 

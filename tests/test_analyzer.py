@@ -28,6 +28,22 @@ def test_analyzer_analyze_2_texts() -> None:
     assert result.args[1] == ["cat"]
 
 
+def test_analyzer_analyze_2_texts_with_empty_variable() -> None:
+    result = analyze(["axb", "ab"])
+
+    assert result.to_format_string() == "a{}b"
+    assert result.args[0] == ["x"]
+    assert result.args[1] == [""]
+
+
+def test_analyzer_analyze_2_texts_with_empty_variable_first() -> None:
+    result = analyze(["ab", "axb"])
+
+    assert result.to_format_string() == "a{}b"
+    assert result.args[0] == [""]
+    assert result.args[1] == ["x"]
+
+
 def test_analyzer_analyze_3_texts() -> None:
     text1 = "A dog is a good pet"
     text2 = "A cat is a good pet"
