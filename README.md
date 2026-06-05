@@ -20,7 +20,7 @@ result = analyze([
     "A cat is a pretty pet",
     "A bird is a great pet",
 ])
-result.to_format_string()  # => "A {} is a {} pet"
+result.to_format_string()  # => "A {0} is a {1} pet"
 result.args[0]  # => ["dog", "good"]
 result.args[1]  # => ["cat", "good"]
 result.args[2]  # => ["cat", "pretty"]

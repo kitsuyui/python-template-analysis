@@ -48,6 +48,24 @@ def test_symbol_table_lookup_missing_symbol() -> None:
         table.lookup(unknown)
 
 
+def test_symbol_table_combined_normalizes_chains() -> None:
+    # table_a: s1 -> "value"
+    table_a = SymbolTable.create()
+    s1 = Symbol.create()
+    table_a.add(s1, "value")
+
+    # table_b: s2 -> s1 (chain s2 -> s1 -> "value")
+    table_b = SymbolTable.create()
+    s2 = Symbol.create()
+    table_b.add(s2, s1)
+
+    combined = table_a.combined(table_b)
+    assert combined.lookup(s1) == "value"
+    assert combined.lookup(s2) == "value"
+    # The combined table must store the resolved chunk directly (depth 1).
+    assert combined.table[s2] == "value"
+
+
 def test_symbol_template() -> None:
     template = SymbolTemplate([], SymbolTable.create())
     assert template.resolve() == []

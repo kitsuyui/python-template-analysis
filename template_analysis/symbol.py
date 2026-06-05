@@ -30,22 +30,33 @@ class SymbolTable:
     def add(self, symbol: Symbol, chunk: SymbolChunk) -> None:
         self.table[symbol] = chunk
 
+    def _resolve_symbol(self, symbol: Symbol) -> SymbolChunk:
+        resolved = self.table.get(symbol)
+        if resolved is None:
+            raise KeyError(
+                f"Symbol not found in table"
+                f" (table size: {len(self.table)})",
+            )
+        return resolved
+
     def lookup(self, symbol_or_chunk: SymbolChunk) -> Chunk:
         while isinstance(symbol_or_chunk, Symbol):
-            resolved = self.table.get(symbol_or_chunk)
-            if resolved is None:
-                raise KeyError(
-                    f"Symbol not found in table"
-                    f" (table size: {len(self.table)})",
-                )
-            symbol_or_chunk = resolved
-        assert isinstance(symbol_or_chunk, Chunk)
+            symbol_or_chunk = self._resolve_symbol(symbol_or_chunk)
+        if not isinstance(symbol_or_chunk, Chunk):
+            raise RuntimeError(
+                f"Internal invariant violated: expected Chunk after symbol "
+                f"resolution but got {type(symbol_or_chunk).__name__!r}. "
+                "This indicates an unresolvable symbol or a cycle.",
+            )
         return symbol_or_chunk
 
     def combined(self, other: SymbolTable) -> SymbolTable:
-        new_table = self.table.copy()
-        new_table.update(other.table)
-        return SymbolTable(new_table)
+        merged: dict[Symbol, SymbolChunk] = {**self.table, **other.table}
+        merged_table = SymbolTable(merged)
+        # Flatten symbol chains to depth 1 so lookup() stays O(1) per call.
+        return SymbolTable(
+            {s: merged_table.lookup(s) for s in merged},
+        )
 
 
 SymbolOrCharacter = Symbol | Character

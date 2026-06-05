@@ -44,7 +44,7 @@ class AnalyzerResult:
         return self.template.to_format_string()
 
     @classmethod
-    def from_text(cls, text: str) -> AnalyzerResult:
+    def _from_text(cls, text: str) -> AnalyzerResult:
         return AnalyzerResult(
             text=list(text),
             tables=[SymbolTable.create()],
@@ -98,9 +98,23 @@ class Analyzer:
             self.parsed.append(symbol)
             self.table.add(symbol, s)
 
-    def advance(self, pos: int, size: int, symbol: Symbol) -> None:
-        while (unmatch_length := pos - self.pos) > 0:
-            self.append_unique(unmatch_length, symbol)
+    def append_unique_or_empty(self, size: int, symbol: Symbol) -> None:
+        if size == 0:
+            self.parsed.append(symbol)
+            self.table.add(symbol, "")
+            return
+        self.append_unique(size, symbol)
+
+    def advance(
+        self,
+        pos: int,
+        size: int,
+        symbol: Symbol,
+        force_unique: bool = False,
+    ) -> None:
+        unmatch_length = pos - self.pos
+        if force_unique or unmatch_length > 0:
+            self.append_unique_or_empty(unmatch_length, symbol)
         self.append_match(size)
 
     @classmethod
@@ -109,21 +123,34 @@ class Analyzer:
         seq1: SymbolString,
         seq2: SymbolString,
     ) -> tuple[Analyzer, Analyzer]:
-        matcher = difflib.SequenceMatcher(None, seq1, seq2)
+        matcher = difflib.SequenceMatcher(None, seq1, seq2, autojunk=False)
         blocks = matcher.get_matching_blocks()
         analyzer_a = cls.create(seq1)
         analyzer_b = cls.create(seq2)
 
         for block in blocks:
             symbol = Symbol.create()
-            analyzer_a.advance(block.a, block.size, symbol)
-            analyzer_b.advance(block.b, block.size, symbol)
+            unmatch_a = block.a - analyzer_a.pos
+            unmatch_b = block.b - analyzer_b.pos
+            force_unique = unmatch_a > 0 or unmatch_b > 0
+            analyzer_a.advance(
+                block.a,
+                block.size,
+                symbol,
+                force_unique,
+            )
+            analyzer_b.advance(
+                block.b,
+                block.size,
+                symbol,
+                force_unique,
+            )
 
         return analyzer_a, analyzer_b
 
     @classmethod
     def analyze(cls, texts: list[str]) -> AnalyzerResult:
-        return cls.analyze_texts(texts)
+        return cls._analyze_texts(texts)
 
     @classmethod
     def analyze_two_result(
@@ -135,7 +162,13 @@ class Analyzer:
             result1.text,
             result2.text,
         )
-        assert analyzer_a.parsed_text == analyzer_b.parsed_text
+        if analyzer_a.parsed_text != analyzer_b.parsed_text:
+            raise RuntimeError(
+                "Internal invariant violated: both analyzers must produce "
+                "the same parsed_text. This indicates a bug in the analysis "
+                f"algorithm. Got: {analyzer_a.parsed_text!r} vs "
+                f"{analyzer_b.parsed_text!r}",
+            )
         return AnalyzerResult(
             analyzer_a.parsed_text,
             [
@@ -151,17 +184,17 @@ class Analyzer:
         )
 
     @classmethod
-    def analyze_texts(cls, texts: list[str]) -> AnalyzerResult:
+    def _analyze_texts(cls, texts: list[str]) -> AnalyzerResult:
         texts = texts[:]
 
         if not texts:
             raise ValueError("texts are empty.")
 
         text = texts.pop(0)
-        acc = AnalyzerResult.from_text(text)
+        acc = AnalyzerResult._from_text(text)
         while texts:
             text = texts.pop(0)
-            curr = AnalyzerResult.from_text(text)
+            curr = AnalyzerResult._from_text(text)
             acc = cls.analyze_two_result(acc, curr)
 
         return acc
