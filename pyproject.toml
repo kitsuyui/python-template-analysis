@@ -10,7 +10,7 @@ authors = [
     {name = "Yui KITSU", email = "kitsuyui+github@kitsuyui.com"}
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -96,12 +96,6 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"template_analysis/analyzer.py" = [
-    "S101",
-]
-"template_analysis/symbol.py" = [
-    "S101",
-]
 "tests/**/*.py" = [
     "ANN",
     "D",

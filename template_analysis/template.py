@@ -12,7 +12,7 @@ class Variable:
     id: int
 
     def to_format_string(self) -> str:
-        return "{}"
+        return f"{{{self.id}}}"
 
 
 @dataclass(frozen=True)
