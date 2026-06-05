@@ -149,8 +149,12 @@ class Analyzer:
         return analyzer_a, analyzer_b
 
     @classmethod
-    def analyze(cls, texts: list[str]) -> AnalyzerResult:
-        return cls._analyze_texts(texts)
+    def analyze(
+        cls,
+        texts: list[str],
+        max_texts: int | None = None,
+    ) -> AnalyzerResult:
+        return cls._analyze_texts(texts, max_texts=max_texts)
 
     @classmethod
     def analyze_two_result(
@@ -183,12 +187,26 @@ class Analyzer:
             ],
         )
 
+    @staticmethod
+    def _assert_max_texts(n: int, max_texts: int | None) -> None:
+        if max_texts is not None and n > max_texts:
+            raise ValueError(
+                f"Too many texts: got {n}, max_texts={max_texts}. "
+                "analyze_texts holds O(N) SymbolTable entries in memory.",
+            )
+
     @classmethod
-    def _analyze_texts(cls, texts: list[str]) -> AnalyzerResult:
+    def _analyze_texts(
+        cls,
+        texts: list[str],
+        max_texts: int | None = None,
+    ) -> AnalyzerResult:
         texts = texts[:]
 
         if not texts:
             raise ValueError("texts are empty.")
+
+        cls._assert_max_texts(len(texts), max_texts)
 
         text = texts.pop(0)
         acc = AnalyzerResult._from_text(text)
