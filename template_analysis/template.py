@@ -22,7 +22,7 @@ class PlainText:
     value: str
 
     def to_format_string(self) -> str:
-        return self.value
+        return self.value.replace("{", "{{").replace("}", "}}")
 
 
 # A part of a template is either a plain text chunk or a variable.
