@@ -35,7 +35,7 @@ class AnalyzerResult:
     Example:
         >>> result = analyze(["Hello Alice", "Hello Bob"])
         >>> result.to_format_string()
-        'Hello {}'
+        'Hello {0}'
         >>> result.args[0]
         ['Alice']
         >>> result.args[1]
