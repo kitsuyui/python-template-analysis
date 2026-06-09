@@ -9,6 +9,7 @@ from .symbol import (
     Symbol,
     SymbolChunk,
     SymbolChunks,
+    SymbolOrCharacter,
     SymbolString,
     SymbolTable,
     SymbolTemplate,
@@ -25,19 +26,20 @@ def chunk_to_symbol_string(chunk: SymbolChunk) -> SymbolString:
 
 @dataclass(frozen=True)
 class AnalyzerResult:
-    text: SymbolString
-    tables: list[SymbolTable]
+    text: tuple[SymbolOrCharacter, ...]
+    tables: tuple[SymbolTable, ...]
 
     @property
     def template(self) -> Template:
         return Template.from_symbol_template(
-            SymbolTemplate(self.text[:], SymbolTable.create()),
+            SymbolTemplate(list(self.text), SymbolTable.create()),
         )
 
     @property
     def args(self) -> list[Chunks]:
         return [
-            SymbolTemplate(self.text[:], table).args() for table in self.tables
+            SymbolTemplate(list(self.text), table).args()
+            for table in self.tables
         ]
 
     def to_format_string(self) -> str:
@@ -46,8 +48,8 @@ class AnalyzerResult:
     @classmethod
     def _from_text(cls, text: str) -> AnalyzerResult:
         return AnalyzerResult(
-            text=list(text),
-            tables=[SymbolTable.create()],
+            text=tuple(text),
+            tables=(SymbolTable.create(),),
         )
 
 
@@ -96,7 +98,7 @@ class Analyzer:
     def append_unique(self, size: int, symbol: Symbol) -> None:
         for s in self.__read_n_tokens(size):
             self.parsed.append(symbol)
-            self.table.add(symbol, s)
+            self.table = self.table.add(symbol, s)
 
     def append_unique_or_empty(self, size: int, symbol: Symbol) -> None:
         if size == 0:
@@ -159,8 +161,8 @@ class Analyzer:
         result2: AnalyzerResult,
     ) -> AnalyzerResult:
         analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
-            result1.text,
-            result2.text,
+            list(result1.text),
+            list(result2.text),
         )
         if analyzer_a.parsed_text != analyzer_b.parsed_text:
             raise RuntimeError(
@@ -170,8 +172,8 @@ class Analyzer:
                 f"{analyzer_b.parsed_text!r}",
             )
         return AnalyzerResult(
-            analyzer_a.parsed_text,
-            [
+            tuple(analyzer_a.parsed_text),
+            (
                 *[
                     analyzer_a.table.combined(table)
                     for table in result1.tables
@@ -180,7 +182,7 @@ class Analyzer:
                     analyzer_b.table.combined(table)
                     for table in result2.tables
                 ],
-            ],
+            ),
         )
 
     @classmethod
