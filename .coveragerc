@@ -1,4 +1,5 @@
 [report]
+fail_under = 70
 exclude_lines =
     @overload
     pragma: no cover
