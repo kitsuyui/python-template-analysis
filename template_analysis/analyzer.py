@@ -26,6 +26,24 @@ def chunk_to_symbol_string(chunk: SymbolChunk) -> SymbolString:
 
 @dataclass(frozen=True)
 class AnalyzerResult:
+    """Result of analyzing a list of texts for a common template pattern.
+
+    Attributes:
+        text: Symbolic string representing the generalized template structure.
+        tables: One symbol table per analyzed text, mapping symbols to their
+            concrete values in that text.
+
+    Example:
+        >>> result = analyze(["Hello Alice", "Hello Bob"])
+        >>> result.to_format_string()
+        'Hello {0}'
+        >>> result.args[0]
+        ['Alice']
+        >>> result.args[1]
+        ['Bob']
+
+    """
+
     text: SymbolString
     tables: list[SymbolTable]
 
@@ -54,6 +72,13 @@ class AnalyzerResult:
 
 @dataclass
 class Analyzer:
+    """Stateful parser that identifies common patterns across texts.
+
+    This is the internal implementation class. Use the module-level
+    ``analyze`` function or ``Analyzer.analyze`` classmethod for the
+    public API.
+    """
+
     text: SymbolString
     pos: int
     parsed: SymbolChunks
@@ -151,6 +176,19 @@ class Analyzer:
 
     @classmethod
     def analyze(cls, texts: list[str]) -> AnalyzerResult:
+        """Analyze a list of texts and extract a common template.
+
+        Args:
+            texts: Non-empty list of strings to analyze.
+
+        Returns:
+            An AnalyzerResult containing the extracted template and per-text
+            argument lists.
+
+        Raises:
+            ValueError: If texts is empty.
+
+        """
         return cls._analyze_texts(texts)
 
     @classmethod
