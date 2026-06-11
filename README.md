@@ -73,6 +73,10 @@ uv run poe test
 CI still runs the full matrix (see `.github/workflows/`); the hooks only bring that
 feedback earlier on your machine.
 
+## Release notes
+
+See [CHANGELOG.md](CHANGELOG.md) for release history and upgrade notes.
+
 ## License
 
 The 3-Clause BSD License. See also LICENSE file.
