@@ -24,7 +24,7 @@ def chunk_to_symbol_string(chunk: SymbolChunk) -> SymbolString:
     return list(chunk)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class AnalyzerResult:
     """Result of analyzing a list of texts for a common template pattern.
 
@@ -46,6 +46,19 @@ class AnalyzerResult:
 
     text: SymbolString
     tables: list[SymbolTable]
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AnalyzerResult):
+            return NotImplemented
+        return (
+            self.to_format_string() == other.to_format_string()
+            and self.args == other.args
+        )
+
+    def __hash__(self) -> int:
+        return hash(
+            (self.to_format_string(), tuple(tuple(a) for a in self.args)),
+        )
 
     @property
     def template(self) -> Template:
