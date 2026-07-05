@@ -37,5 +37,5 @@ def test_public_return_type_imports_resolve() -> None:
     assert symbol_string == [symbol, "x"]
     assert chunks == ["dog"]
     assert table.lookup("cat") == "cat"
-    assert template.to_format_string() == "A {}"
+    assert template.to_format_string() == "A {0}"
     assert template_part.to_format_string() == "part"
