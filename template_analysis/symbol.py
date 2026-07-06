@@ -30,9 +30,18 @@ class SymbolTable:
     def add(self, symbol: Symbol, chunk: SymbolChunk) -> None:
         self.table[symbol] = chunk
 
+    def _resolve_symbol(self, symbol: Symbol) -> SymbolChunk:
+        resolved = self.table.get(symbol)
+        if resolved is None:
+            raise KeyError(
+                f"Symbol not found in table"
+                f" (table size: {len(self.table)})",
+            )
+        return resolved
+
     def lookup(self, symbol_or_chunk: SymbolChunk) -> Chunk:
         while isinstance(symbol_or_chunk, Symbol):
-            symbol_or_chunk = self.table[symbol_or_chunk]
+            symbol_or_chunk = self._resolve_symbol(symbol_or_chunk)
         if not isinstance(symbol_or_chunk, Chunk):
             raise RuntimeError(
                 f"Internal invariant violated: expected Chunk after symbol "
