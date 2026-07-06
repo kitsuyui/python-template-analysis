@@ -72,6 +72,20 @@ def test_analyzer_analyze_4_texts() -> None:
     assert result.args[3] == ["bird", "great"]
 
 
+def test_analyzer_result_equality_across_calls() -> None:
+    texts = ["A dog is a good pet", "A cat is a good pet"]
+    r1 = analyze(texts)
+    r2 = analyze(texts)
+    assert r1 == r2
+    assert hash(r1) == hash(r2)
+
+
+def test_analyzer_result_inequality_different_inputs() -> None:
+    r1 = analyze(["A dog is a good pet", "A cat is a good pet"])
+    r2 = analyze(["A dog is a good pet", "A fish is a good pet"])
+    assert r1 != r2
+
+
 def test_analyzer_analyze_long_texts_autojunk_disabled() -> None:
     # Texts over 200 chars with high-frequency chars (space ~50%) triggered
     # SequenceMatcher autojunk, causing the shared prefix to be excluded from
