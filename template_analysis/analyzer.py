@@ -93,7 +93,7 @@ class Analyzer:
             table=SymbolTable.create(),
         )
 
-    def proceed(self, size: int) -> None:
+    def _proceed(self, size: int) -> None:
         self.pos += size
 
     @property
@@ -110,28 +110,28 @@ class Analyzer:
         token: SymbolString = self.text[start:stop]
         for s in to_symbol_chunks(token):
             if isinstance(s, Symbol):
-                self.proceed(1)
+                self._proceed(1)
             else:
-                self.proceed(len(s))
+                self._proceed(len(s))
             yield s
 
-    def append_match(self, size: int) -> None:
+    def _append_match(self, size: int) -> None:
         for s in self.__read_n_tokens(size):
             self.parsed.append(s)
 
-    def append_unique(self, size: int, symbol: Symbol) -> None:
+    def _append_unique(self, size: int, symbol: Symbol) -> None:
         for s in self.__read_n_tokens(size):
             self.parsed.append(symbol)
             self.table.add(symbol, s)
 
-    def append_unique_or_empty(self, size: int, symbol: Symbol) -> None:
+    def _append_unique_or_empty(self, size: int, symbol: Symbol) -> None:
         if size == 0:
             self.parsed.append(symbol)
             self.table.add(symbol, "")
             return
-        self.append_unique(size, symbol)
+        self._append_unique(size, symbol)
 
-    def advance(
+    def _advance(
         self,
         pos: int,
         size: int,
@@ -140,14 +140,12 @@ class Analyzer:
     ) -> None:
         unmatch_length = pos - self.pos
         if force_unique or unmatch_length > 0:
-            self.append_unique_or_empty(unmatch_length, symbol)
-        self.append_match(size)
+            self._append_unique_or_empty(unmatch_length, symbol)
+        self._append_match(size)
 
     @classmethod
-    def analyze_two_symbol_strings(
-        cls,
-        seq1: SymbolString,
-        seq2: SymbolString,
+    def _analyze_two_symbol_strings(
+        cls, seq1: SymbolString, seq2: SymbolString,
     ) -> tuple[Analyzer, Analyzer]:
         matcher = difflib.SequenceMatcher(None, seq1, seq2, autojunk=False)
         blocks = matcher.get_matching_blocks()
@@ -159,13 +157,13 @@ class Analyzer:
             unmatch_a = block.a - analyzer_a.pos
             unmatch_b = block.b - analyzer_b.pos
             force_unique = unmatch_a > 0 or unmatch_b > 0
-            analyzer_a.advance(
+            analyzer_a._advance(
                 block.a,
                 block.size,
                 symbol,
                 force_unique,
             )
-            analyzer_b.advance(
+            analyzer_b._advance(
                 block.b,
                 block.size,
                 symbol,
@@ -192,14 +190,11 @@ class Analyzer:
         return cls._analyze_texts(texts)
 
     @classmethod
-    def analyze_two_result(
-        cls,
-        result1: AnalyzerResult,
-        result2: AnalyzerResult,
+    def _analyze_two_result(
+        cls, result1: AnalyzerResult, result2: AnalyzerResult,
     ) -> AnalyzerResult:
-        analyzer_a, analyzer_b = cls.analyze_two_symbol_strings(
-            result1.text,
-            result2.text,
+        analyzer_a, analyzer_b = cls._analyze_two_symbol_strings(
+            result1.text, result2.text,
         )
         if analyzer_a.parsed_text != analyzer_b.parsed_text:
             raise RuntimeError(
@@ -234,7 +229,7 @@ class Analyzer:
         while texts:
             text = texts.pop(0)
             curr = AnalyzerResult._from_text(text)
-            acc = cls.analyze_two_result(acc, curr)
+            acc = cls._analyze_two_result(acc, curr)
 
         return acc
 
