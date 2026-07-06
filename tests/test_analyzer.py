@@ -122,3 +122,21 @@ def test_analyzer_analyze_mixed_unicode_normalization() -> None:
     assert result.to_format_string() == "café"
     assert result.args[0] == []
     assert result.args[1] == []
+
+
+def test_analyzer_max_texts_limit() -> None:
+    texts = ["A dog is a good pet", "A cat is a good pet", "A bird is a good pet"]
+    with pytest.raises(ValueError, match="Too many texts"):
+        analyze(texts, max_texts=2)
+
+
+def test_analyzer_max_texts_at_limit() -> None:
+    texts = ["A dog is a good pet", "A cat is a good pet"]
+    result = analyze(texts, max_texts=2)
+    assert result.to_format_string() == "A {0} is a good pet"
+
+
+def test_analyzer_max_texts_none() -> None:
+    texts = ["A dog is a good pet", "A cat is a good pet", "A bird is a good pet"]
+    result = analyze(texts, max_texts=None)
+    assert len(result.args) == 3
