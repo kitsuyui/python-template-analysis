@@ -31,7 +31,7 @@ def test_analyzer_analyze_2_texts() -> None:
 def test_analyzer_analyze_2_texts_with_empty_variable() -> None:
     result = analyze(["axb", "ab"])
 
-    assert result.to_format_string() == "a{}b"
+    assert result.to_format_string() == "a{0}b"
     assert result.args[0] == ["x"]
     assert result.args[1] == [""]
 
@@ -39,7 +39,7 @@ def test_analyzer_analyze_2_texts_with_empty_variable() -> None:
 def test_analyzer_analyze_2_texts_with_empty_variable_first() -> None:
     result = analyze(["ab", "axb"])
 
-    assert result.to_format_string() == "a{}b"
+    assert result.to_format_string() == "a{0}b"
     assert result.args[0] == [""]
     assert result.args[1] == ["x"]
 
@@ -79,6 +79,6 @@ def test_analyzer_analyze_long_texts_autojunk_disabled() -> None:
     text2 = prefix + "cat"
     result = analyze([text1, text2])
 
-    assert result.to_format_string() == prefix + "{}"
+    assert result.to_format_string() == prefix + "{0}"
     assert result.args[0] == ["dog"]
     assert result.args[1] == ["cat"]
