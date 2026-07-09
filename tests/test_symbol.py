@@ -35,7 +35,7 @@ def test_to_symbol_chunks() -> None:
 def test_symbol_table() -> None:
     table = SymbolTable.create()
     symbol1 = Symbol.create()
-    table.add(symbol1, "a")
+    table = table.add(symbol1, "a")
 
     assert table.lookup(symbol1) == "a"
     assert table.lookup("b") == "b"
@@ -52,12 +52,12 @@ def test_symbol_table_combined_normalizes_chains() -> None:
     # table_a: s1 -> "value"
     table_a = SymbolTable.create()
     s1 = Symbol.create()
-    table_a.add(s1, "value")
+    table_a = table_a.add(s1, "value")
 
     # table_b: s2 -> s1 (chain s2 -> s1 -> "value")
     table_b = SymbolTable.create()
     s2 = Symbol.create()
-    table_b.add(s2, s1)
+    table_b = table_b.add(s2, s1)
 
     combined = table_a.combined(table_b)
     assert combined.lookup(s1) == "value"
@@ -81,7 +81,7 @@ def test_symbol_template() -> None:
 
     table = SymbolTable.create()
     symbol1 = Symbol.create()
-    table.add(symbol1, "x")
+    table = table.add(symbol1, "x")
     template = SymbolTemplate(["a", "b", symbol1, "c", "d"], table)
     assert template.resolve() == ["a", "b", "x", "c", "d"]
     assert template.args() == ["x"]

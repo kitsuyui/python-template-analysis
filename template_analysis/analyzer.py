@@ -10,6 +10,7 @@ from .symbol import (
     Symbol,
     SymbolChunk,
     SymbolChunks,
+    SymbolOrCharacter,
     SymbolString,
     SymbolTable,
     SymbolTemplate,
@@ -44,8 +45,8 @@ class AnalyzerResult:
 
     """
 
-    text: SymbolString
-    tables: list[SymbolTable]
+    text: tuple[SymbolOrCharacter, ...]
+    tables: tuple[SymbolTable, ...]
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, AnalyzerResult):
@@ -63,13 +64,14 @@ class AnalyzerResult:
     @property
     def template(self) -> Template:
         return Template.from_symbol_template(
-            SymbolTemplate(self.text[:], SymbolTable.create()),
+            SymbolTemplate(list(self.text), SymbolTable.create()),
         )
 
     @property
     def args(self) -> list[Chunks]:
         return [
-            SymbolTemplate(self.text[:], table).args() for table in self.tables
+            SymbolTemplate(list(self.text), table).args()
+            for table in self.tables
         ]
 
     def to_format_string(self) -> str:
@@ -78,8 +80,8 @@ class AnalyzerResult:
     @classmethod
     def _from_text(cls, text: str) -> AnalyzerResult:
         return AnalyzerResult(
-            text=list(unicodedata.normalize("NFC", text)),
-            tables=[SymbolTable.create()],
+            text=tuple(unicodedata.normalize("NFC", text)),
+            tables=(SymbolTable.create(),),
         )
 
 
@@ -135,12 +137,12 @@ class Analyzer:
     def _append_unique(self, size: int, symbol: Symbol) -> None:
         for s in self.__read_n_tokens(size):
             self.parsed.append(symbol)
-            self.table.add(symbol, s)
+            self.table = self.table.add(symbol, s)
 
     def _append_unique_or_empty(self, size: int, symbol: Symbol) -> None:
         if size == 0:
             self.parsed.append(symbol)
-            self.table.add(symbol, "")
+            self.table = self.table.add(symbol, "")
             return
         self._append_unique(size, symbol)
 
@@ -226,7 +228,8 @@ class Analyzer:
         cls, result1: AnalyzerResult, result2: AnalyzerResult,
     ) -> AnalyzerResult:
         analyzer_a, analyzer_b = cls._analyze_two_symbol_strings(
-            result1.text, result2.text,
+            list(result1.text),
+            list(result2.text),
         )
         if analyzer_a.parsed_text != analyzer_b.parsed_text:
             raise RuntimeError(
@@ -236,8 +239,8 @@ class Analyzer:
                 f"{analyzer_b.parsed_text!r}",
             )
         return AnalyzerResult(
-            analyzer_a.parsed_text,
-            [
+            tuple(analyzer_a.parsed_text),
+            (
                 *[
                     analyzer_a.table.combined(table)
                     for table in result1.tables
@@ -246,7 +249,7 @@ class Analyzer:
                     analyzer_b.table.combined(table)
                     for table in result2.tables
                 ],
-            ],
+            ),
         )
 
     @staticmethod
