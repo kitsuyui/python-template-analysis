@@ -72,6 +72,15 @@ def test_analyzer_analyze_4_texts() -> None:
     assert result.args[3] == ["bird", "great"]
 
 
+def test_analyzer_analyze_3_texts_with_existing_symbol_in_mismatch() -> None:
+    result = analyze(["abc123xyz", "abc456xyz", "abc456uvw"])
+
+    assert result.to_format_string() == "abc{0}"
+    assert result.args[0] == ["123xyz"]
+    assert result.args[1] == ["456xyz"]
+    assert result.args[2] == ["456uvw"]
+
+
 def test_analyzer_result_equality_across_calls() -> None:
     texts = ["A dog is a good pet", "A cat is a good pet"]
     r1 = analyze(texts)
@@ -89,8 +98,11 @@ def test_analyzer_result_inequality_different_inputs() -> None:
 def test_analyzer_analyze_long_texts_autojunk_disabled() -> None:
     # Texts over 200 chars with high-frequency chars (space ~50%) triggered
     # SequenceMatcher autojunk, causing the shared prefix to be excluded from
-    # matching and incorrectly detected as a variable. autojunk=False prevents this.
-    prefix = "a " * 95  # 190 chars; 'a' and ' ' each appear ~50% — autojunk candidates
+    # matching and incorrectly detected as a variable. autojunk=False
+    # prevents this.
+    prefix = (
+        "a " * 95
+    )  # 190 chars; 'a' and ' ' each appear ~50% — autojunk candidates
     text1 = prefix + "dog"
     text2 = prefix + "cat"
     result = analyze([text1, text2])
@@ -125,7 +137,11 @@ def test_analyzer_analyze_mixed_unicode_normalization() -> None:
 
 
 def test_analyzer_max_texts_limit() -> None:
-    texts = ["A dog is a good pet", "A cat is a good pet", "A bird is a good pet"]
+    texts = [
+        "A dog is a good pet",
+        "A cat is a good pet",
+        "A bird is a good pet",
+    ]
     with pytest.raises(ValueError, match="Too many texts"):
         analyze(texts, max_texts=2)
 
@@ -137,6 +153,10 @@ def test_analyzer_max_texts_at_limit() -> None:
 
 
 def test_analyzer_max_texts_none() -> None:
-    texts = ["A dog is a good pet", "A cat is a good pet", "A bird is a good pet"]
+    texts = [
+        "A dog is a good pet",
+        "A cat is a good pet",
+        "A bird is a good pet",
+    ]
     result = analyze(texts, max_texts=None)
     assert len(result.args) == 3

@@ -23,18 +23,18 @@ class Symbol:
 class SymbolTable:
     """A table of symbols."""
 
-    table: Mapping[Symbol, SymbolChunk]
+    table: Mapping[Symbol, SymbolValue]
 
     @classmethod
     def create(cls) -> SymbolTable:
-        empty: dict[Symbol, SymbolChunk] = {}
+        empty: dict[Symbol, SymbolValue] = {}
         return cls(MappingProxyType(empty))
 
-    def add(self, symbol: Symbol, chunk: SymbolChunk) -> SymbolTable:
-        new: dict[Symbol, SymbolChunk] = {**self.table, symbol: chunk}
+    def add(self, symbol: Symbol, chunk: SymbolValue) -> SymbolTable:
+        new: dict[Symbol, SymbolValue] = {**self.table, symbol: chunk}
         return SymbolTable(MappingProxyType(new))
 
-    def _resolve_symbol(self, symbol: Symbol) -> SymbolChunk:
+    def _resolve_symbol(self, symbol: Symbol) -> SymbolValue:
         resolved = self.table.get(symbol)
         if resolved is None:
             raise KeyError(
@@ -44,18 +44,24 @@ class SymbolTable:
         return resolved
 
     def lookup(self, symbol_or_chunk: SymbolChunk) -> Chunk:
-        while isinstance(symbol_or_chunk, Symbol):
-            symbol_or_chunk = self._resolve_symbol(symbol_or_chunk)
-        if not isinstance(symbol_or_chunk, Chunk):
+        resolved = self._resolve_value(symbol_or_chunk)
+        if not isinstance(resolved, Chunk):
             raise RuntimeError(
                 f"Internal invariant violated: expected Chunk after symbol "
-                f"resolution but got {type(symbol_or_chunk).__name__!r}. "
+                f"resolution but got {type(resolved).__name__!r}. "
                 "This indicates an unresolvable symbol or a cycle.",
             )
-        return symbol_or_chunk
+        return resolved
+
+    def _resolve_value(self, value: SymbolValue) -> Chunk:
+        while isinstance(value, Symbol):
+            value = self._resolve_symbol(value)
+        if isinstance(value, list):
+            return "".join(self._resolve_value(chunk) for chunk in value)
+        return value
 
     def combined(self, other: SymbolTable) -> SymbolTable:
-        merged: dict[Symbol, SymbolChunk] = {**self.table, **other.table}
+        merged: dict[Symbol, SymbolValue] = {**self.table, **other.table}
         merged_table = SymbolTable(MappingProxyType(merged))
         # Flatten symbol chains to depth 1 so lookup() stays O(1) per call.
         return SymbolTable(
@@ -67,6 +73,7 @@ SymbolOrCharacter = Symbol | Character
 SymbolChunk = Symbol | Chunk
 Chunks = list[Chunk]
 SymbolString = list[SymbolOrCharacter]
+SymbolValue = SymbolChunk | SymbolString
 SymbolChunks = list[SymbolChunk]
 
 
