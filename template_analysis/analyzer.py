@@ -120,24 +120,22 @@ class Analyzer:
         ]
 
     def __read_n_tokens(self, size: int) -> Iterator[SymbolChunk]:
+        yield from to_symbol_chunks(self.__read_symbol_string(size))
+
+    def __read_symbol_string(self, size: int) -> SymbolString:
         start = self.pos
         stop = self.pos + size
-        token: SymbolString = self.text[start:stop]
-        for s in to_symbol_chunks(token):
-            if isinstance(s, Symbol):
-                self._proceed(1)
-            else:
-                self._proceed(len(s))
-            yield s
+        token = self.text[start:stop]
+        self._proceed(size)
+        return token
 
     def _append_match(self, size: int) -> None:
         for s in self.__read_n_tokens(size):
             self.parsed.append(s)
 
     def _append_unique(self, size: int, symbol: Symbol) -> None:
-        for s in self.__read_n_tokens(size):
-            self.parsed.append(symbol)
-            self.table = self.table.add(symbol, s)
+        self.parsed.append(symbol)
+        self.table = self.table.add(symbol, self.__read_symbol_string(size))
 
     def _append_unique_or_empty(self, size: int, symbol: Symbol) -> None:
         if size == 0:

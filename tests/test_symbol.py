@@ -66,6 +66,16 @@ def test_symbol_table_combined_normalizes_chains() -> None:
     assert combined.table[s2] == "value"
 
 
+def test_symbol_table_lookup_composite_symbol_string() -> None:
+    table = SymbolTable.create()
+    s1 = Symbol.create()
+    s2 = Symbol.create()
+    table = table.add(s1, "left")
+    table = table.add(s2, [s1, "-", "right"])
+
+    assert table.lookup(s2) == "left-right"
+
+
 def test_symbol_template() -> None:
     template = SymbolTemplate([], SymbolTable.create())
     assert template.resolve() == []
