@@ -41,6 +41,11 @@ def test_symbol_table() -> None:
     assert table.lookup("b") == "b"
 
 
+def test_symbol_repr_is_stable() -> None:
+    assert repr(Symbol.create()) == "Symbol()"
+    assert repr(Symbol.create()) == "Symbol()"
+
+
 def test_symbol_table_lookup_missing_symbol() -> None:
     table = SymbolTable.create()
     unknown = Symbol.create()
