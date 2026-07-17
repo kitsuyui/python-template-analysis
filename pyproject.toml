@@ -32,6 +32,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "poethepoet",
+    "setuptools>=83",
     "setuptools-scm",
     "ruff",
     "mypy",
@@ -44,7 +45,7 @@ dev = [
 exclude-newer = "2 days"
 
 [build-system]
-requires = ["setuptools", "setuptools_scm"]
+requires = ["setuptools>=83", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]

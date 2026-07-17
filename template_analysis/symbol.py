@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 
 Character = str
@@ -12,11 +12,14 @@ Chunk = str
 class Symbol:
     """A symbol in a template."""
 
-    value: object
+    value: object = field(repr=False)
 
     @classmethod
     def create(cls) -> Symbol:
         return cls(object())
+
+    def __repr__(self) -> str:
+        return "Symbol()"
 
 
 @dataclass
