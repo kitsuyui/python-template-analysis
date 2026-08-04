@@ -14,6 +14,8 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: write
+  checks: write
 
 jobs:
   actionlint:
@@ -62,7 +64,15 @@ jobs:
         run: uv run poe test
 
       - name: Coverage
+        if: matrix.python == '3.14'
         run: uv run poe coverage-xml
+
+      - name: Report coverage with octocov
+        if: matrix.python == '3.14'
+        uses: k1LoW/octocov-action@b3b6ee60482a667950f87553abf1df63217235d9 # v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          config: .octocov.yml
 
   pip-audit:
     runs-on: ubuntu-latest
