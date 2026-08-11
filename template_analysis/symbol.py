@@ -47,7 +47,7 @@ class SymbolTable:
         return resolved
 
     def lookup(self, symbol_or_chunk: SymbolChunk) -> Chunk:
-        resolved = self._resolve_value(symbol_or_chunk)
+        resolved = self._resolve_value(symbol_or_chunk, seen_symbols=set())
         if not isinstance(resolved, Chunk):
             raise RuntimeError(
                 f"Internal invariant violated: expected Chunk after symbol "
@@ -56,11 +56,28 @@ class SymbolTable:
             )
         return resolved
 
-    def _resolve_value(self, value: SymbolValue) -> Chunk:
+    def _resolve_symbol_value(
+        self,
+        value: Symbol,
+        seen_symbols: set[Symbol],
+    ) -> SymbolValue:
+        if value in seen_symbols:
+            raise RuntimeError("Symbol cycle detected during lookup")
+        seen_symbols.add(value)
+        return self._resolve_symbol(value)
+
+    def _resolve_value(
+        self,
+        value: SymbolValue,
+        seen_symbols: set[Symbol],
+    ) -> Chunk:
         while isinstance(value, Symbol):
-            value = self._resolve_symbol(value)
+            value = self._resolve_symbol_value(value, seen_symbols)
         if isinstance(value, list):
-            return "".join(self._resolve_value(chunk) for chunk in value)
+            return "".join(
+                self._resolve_value(chunk, seen_symbols=set(seen_symbols))
+                for chunk in value
+            )
         return value
 
     def combined(self, other: SymbolTable) -> SymbolTable:
