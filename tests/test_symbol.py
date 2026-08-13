@@ -81,6 +81,28 @@ def test_symbol_table_lookup_composite_symbol_string() -> None:
     assert table.lookup(s2) == "left-right"
 
 
+def test_symbol_table_lookup_rejects_symbol_cycle() -> None:
+    table = SymbolTable.create()
+    s1 = Symbol.create()
+    s2 = Symbol.create()
+    table = table.add(s1, s2)
+    table = table.add(s2, s1)
+
+    with pytest.raises(RuntimeError, match="Symbol cycle detected during lookup"):
+        table.lookup(s1)
+
+
+def test_symbol_table_lookup_rejects_cycle_in_symbol_string() -> None:
+    table = SymbolTable.create()
+    s1 = Symbol.create()
+    s2 = Symbol.create()
+    table = table.add(s1, ["prefix-", s2])
+    table = table.add(s2, s1)
+
+    with pytest.raises(RuntimeError, match="Symbol cycle detected during lookup"):
+        table.lookup(s1)
+
+
 def test_symbol_template() -> None:
     template = SymbolTemplate([], SymbolTable.create())
     assert template.resolve() == []
