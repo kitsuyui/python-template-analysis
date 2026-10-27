@@ -32,7 +32,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "poethepoet",
-    "setuptools>=83",
+    "setuptools>=84.1.0",
     "setuptools-scm",
     "ruff",
     "mypy",
